@@ -1,7 +1,8 @@
 public class Message {
 
-    public final byte type;
+    public static final byte BITFIELD = 5;
 
+    public final byte type;
     public final byte[] payload;
 
     public Message(byte type) {
