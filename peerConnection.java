@@ -5,35 +5,40 @@ public class peerConnection extends Thread {
 
     Socket socket;
     int remotePeerId;
+    boolean isIncoming;
 
     DataInputStream in;
     DataOutputStream out;
 
-    public peerConnection(Socket socket, int remotePeerId) throws Exception {
+    byte[] remoteBitfield;
+
+    public peerConnection(Socket socket, int remotePeerId, boolean isIncoming) throws Exception {
 
         this.socket = socket;
         this.remotePeerId = remotePeerId;
-
-        System.out.println("test 1");
+        this.isIncoming = isIncoming;
 
         in = new DataInputStream(socket.getInputStream());
-        System.out.println("test 2");
-
         out = new DataOutputStream(socket.getOutputStream());
-<<<<<<< HEAD
-
-        System.out.println("test 3");
 
         sendHandshake();
 
-        System.out.println("test 4");
+        // For incoming connections, `peerProcess` already read and validated the remote handshake.
+        if (!isIncoming)
+            receiveHandshake();
+        else
+            Logger.log("Peer " + peerProcess.peerId + " received handshake from Peer " + remotePeerId);
 
-        receiveHandshake();
+        // Immediately after handshake, exchange bitfields (if a peer has no pieces, it may skip).
+        if (isIncoming) {
+            receiveBitfieldOrSkip();
+            sendBitfieldIfAny();
+        } else {
+            sendBitfieldIfAny();
+            receiveBitfieldOrSkip();
+        }
 
-        System.out.println("test 5");
-
-=======
->>>>>>> 1851c2642446c182ca396654782d88f9e63f59f9
+        sendInterestedOrNotInterested();
     }
 
     public void run() {
@@ -68,22 +73,88 @@ public class peerConnection extends Thread {
 
     void receiveHandshake() throws Exception {
 
-        System.out.println("test 6");
-
         byte[] handshake = new byte[32];
 
         in.readFully(handshake);
 
-<<<<<<< HEAD
-                System.out.println("test 7");
+        String receivedHeader = new String(handshake, 0, 18, java.nio.charset.StandardCharsets.US_ASCII);
+        if (!Handshake.header.equals(receivedHeader))
+            throw new IOException("Invalid handshake header");
 
+        int receivedPeerId = Handshake.extractPeerId(handshake);
+        if (receivedPeerId != remotePeerId)
+            throw new IOException("Unexpected peer ID: expected " + remotePeerId + ", got " + receivedPeerId);
 
-        int peerId = Handshake.extractPeerId(handshake);
-=======
-        remotePeerId = Handshake.extractPeerId(handshake);
->>>>>>> 1851c2642446c182ca396654782d88f9e63f59f9
+        Logger.log("Peer " + peerProcess.peerId + " received handshake from Peer " + receivedPeerId);
+    }
 
-        System.out.println("Received handshake from peer " + remotePeerId);
+    void sendBitfieldIfAny() throws Exception {
+
+        if (!hasAnyPieces())
+            return;
+
+        out.writeInt(1 + peerProcess.bitfield.length);
+        out.writeByte(5);
+        out.write(peerProcess.bitfield);
+        out.flush();
+    }
+
+    void receiveBitfieldOrSkip() throws Exception {
+
+        int length = in.readInt();
+        byte type = in.readByte();
+
+        byte[] payload = new byte[length - 1];
+        if (payload.length > 0)
+            in.readFully(payload);
+
+        if (type == 5) {
+            remoteBitfield = payload;
+        } else {
+            // Peer may skip bitfield if it has no pieces.
+            remoteBitfield = new byte[(peerProcess.numPieces + 7) / 8];
+            // If we already consumed an interested/not interested message, handle it now.
+            if (type == 2 || type == 3)
+                handleMessage(type, payload);
+        }
+    }
+
+    boolean hasAnyPieces() {
+
+        if (peerProcess.bitfield == null)
+            return false;
+
+        for (byte b : peerProcess.bitfield)
+            if (b != 0)
+                return true;
+        return false;
+    }
+
+    boolean peerHasPiecesWeNeed(byte[] peerBitfield) {
+
+        if (peerBitfield == null)
+            return false;
+
+        for (int i = 0; i < peerProcess.numPieces; i++) {
+            int byteIdx = i / 8;
+            if (byteIdx >= peerBitfield.length || byteIdx >= peerProcess.bitfield.length)
+                break;
+            int bitIdx = 7 - (i % 8);
+            boolean peerHas = (peerBitfield[byteIdx] & (1 << bitIdx)) != 0;
+            boolean weHave = (peerProcess.bitfield[byteIdx] & (1 << bitIdx)) != 0;
+            if (peerHas && !weHave)
+                return true;
+        }
+        return false;
+    }
+
+    void sendInterestedOrNotInterested() throws Exception {
+
+        boolean interested = peerHasPiecesWeNeed(remoteBitfield);
+
+        out.writeInt(1);
+        out.writeByte(interested ? 2 : 3);
+        out.flush();
     }
 
     void handleMessage(byte type, byte[] payload) {
@@ -104,6 +175,10 @@ public class peerConnection extends Thread {
 
             case 3:
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
+                break;
+
+            case 5:
+                Logger.log("Received BITFIELD from " + remotePeerId);
                 break;
         }
     }
