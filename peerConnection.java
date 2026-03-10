@@ -20,6 +20,7 @@ public class peerConnection extends Thread {
         System.out.println("test 2");
 
         out = new DataOutputStream(socket.getOutputStream());
+<<<<<<< HEAD
 
         System.out.println("test 3");
 
@@ -31,6 +32,8 @@ public class peerConnection extends Thread {
 
         System.out.println("test 5");
 
+=======
+>>>>>>> 1851c2642446c182ca396654782d88f9e63f59f9
     }
 
     public void run() {
@@ -71,12 +74,16 @@ public class peerConnection extends Thread {
 
         in.readFully(handshake);
 
+<<<<<<< HEAD
                 System.out.println("test 7");
 
 
         int peerId = Handshake.extractPeerId(handshake);
+=======
+        remotePeerId = Handshake.extractPeerId(handshake);
+>>>>>>> 1851c2642446c182ca396654782d88f9e63f59f9
 
-        System.out.println("Received handshake from peer " + peerId);
+        System.out.println("Received handshake from peer " + remotePeerId);
     }
 
     void handleMessage(byte type, byte[] payload) {

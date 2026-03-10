@@ -141,18 +141,11 @@ public class peerProcess {
             if (p.id == peerId)
                 break;
 
-            System.out.println("Attempting to Connect to Peer ID: " + p.id);
-
             Socket socket = new Socket(p.host, p.port);
 
             Logger.log("Peer " + peerId + " makes a connection to Peer " + p.id);
 
-            System.out.println("Socket: " + socket);
-            System.out.println("Remote Peer ID: " + p.id);
-
             new peerConnection(socket, p.id).start();
-
-            System.out.println("Connected to Peer ID: " + p.id);
         }
     }
 
