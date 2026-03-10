@@ -22,21 +22,32 @@ public class peerConnection extends Thread {
 
         try {
 
-            while (true) {
+            receiveHandshake();
+            sendHandshake();
 
-                int length = in.readInt();
-                byte type = in.readByte();
-
-                byte[] payload = new byte[length - 1];
-
-                if (payload.length > 0)
-                    in.readFully(payload);
-
-                handleMessage(type, payload);
-            }
+            listenForMessages();
 
         } catch (Exception e) {
-            e.printStackTrace();
+
+            System.out.println("Connection closed with peer " + remotePeerId);
+        }
+    }
+
+    void listenForMessages() throws Exception {
+
+        while (true) {
+
+            int length = in.readInt();
+            byte type = in.readByte();
+
+            byte[] payload = null;
+
+            if (length > 1) {
+                payload = new byte[length - 1];
+                in.readFully(payload);
+            }
+
+            handleMessage(type, payload);
         }
     }
 
@@ -59,6 +70,19 @@ public class peerConnection extends Thread {
         System.out.println("Received handshake from peer " + remotePeerId);
     }
 
+    void sendMessage(byte type, byte[] payload) throws Exception {
+
+        int length = 1 + (payload == null ? 0 : payload.length);
+
+        out.writeInt(length);
+        out.writeByte(type);
+
+        if (payload != null)
+            out.write(payload);
+
+        out.flush();
+    }
+
     void handleMessage(byte type, byte[] payload) {
 
         switch (type) {
@@ -77,6 +101,22 @@ public class peerConnection extends Thread {
 
             case 3:
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
+                break;
+
+            case 4:
+                Logger.log("Received HAVE from " + remotePeerId);
+                break;
+
+            case 5:
+                Logger.log("Received BITFIELD from " + remotePeerId);
+                break;
+
+            case 6:
+                Logger.log("Received REQUEST from " + remotePeerId);
+                break;
+
+            case 7:
+                Logger.log("Received PIECE from " + remotePeerId);
                 break;
         }
     }
