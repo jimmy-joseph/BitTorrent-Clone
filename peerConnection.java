@@ -91,6 +91,14 @@ public class peerConnection extends Thread {
         sendMessage(bitfieldMsg);
     }
 
+    void handleBitfield(Message msg, byte[] bitfield) throws Exception {
+        // Insert bitfield logic handling logic here
+        /*
+        Observe incoming bitfield and determine if there are pieces to request
+        */
+        return; // return neighbor bitfields?
+    }
+
     void handleMessage(byte type, byte[] payload) {
 
         switch (type) {
