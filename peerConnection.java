@@ -16,9 +16,6 @@ public class peerConnection extends Thread {
 
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
-
-        sendHandshake();
-        receiveHandshake();
     }
 
     public void run() {
@@ -57,9 +54,9 @@ public class peerConnection extends Thread {
 
         in.readFully(handshake);
 
-        int peerId = Handshake.extractPeerId(handshake);
+        remotePeerId = Handshake.extractPeerId(handshake);
 
-        System.out.println("Received handshake from peer " + peerId);
+        System.out.println("Received handshake from peer " + remotePeerId);
     }
 
     void handleMessage(byte type, byte[] payload) {
