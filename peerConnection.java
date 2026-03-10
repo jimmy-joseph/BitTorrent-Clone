@@ -81,10 +81,6 @@ public class peerConnection extends Thread {
             case 3:
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
                 break;
-
-            case 5:
-                Logger.log("Received BITFIELD from " + remotePeerId);
-                break;
         }
     }
 }
