@@ -25,4 +25,3 @@ public class peerState {
         this.pieces = new BitSet(numPieces);
     }
 }
-
