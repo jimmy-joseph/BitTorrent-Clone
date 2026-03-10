@@ -14,6 +14,9 @@ public class peerProcess {
     static int fileSize;
     static int pieceSize;
 
+    static int numPieces;
+    static byte[] bitfield;
+
     static ServerSocket serverSocket;
 
     public static void main(String[] args) throws Exception {
