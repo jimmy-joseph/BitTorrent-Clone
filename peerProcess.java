@@ -31,6 +31,8 @@ public class peerProcess {
         readCommonConfig();
         readPeerInfo();
 
+        initBitfield();
+
         Logger.init(peerId);
 
         int port = peers.get(peerId).port;
@@ -104,6 +106,24 @@ public class peerProcess {
         }
 
         br.close();
+    }
+
+    static void initBitfield() {
+
+        numPieces = (int) Math.ceil((double) fileSize / pieceSize);
+        int bitfieldLen = (numPieces + 7) / 8;
+        bitfield = new byte[bitfieldLen];
+
+        boolean hasFile = peers.get(peerId).hasFile;
+        if (hasFile) {
+            // set all bits to 1
+            for (int i = 0; i < bitfieldLen; i++)
+                bitfield[i] = (byte) 0xFF; // set bits to 1
+            int spareBits = bitfieldLen * 8 - numPieces;
+            if (spareBits > 0)
+                bitfield[bitfieldLen - 1] &= (byte) (0xFF << spareBits);
+        }
+        // if file not found, bit set to 0 by default
     }
 
     static void connectToPreviousPeers() throws Exception {
