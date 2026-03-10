@@ -22,6 +22,11 @@ public class peerConnection extends Thread {
 
         try {
 
+            sendHandshake();
+            receiveHandshake();
+
+            sendBitfieldIfNeeded();
+
             while (true) {
 
                 int length = in.readInt();
@@ -57,6 +62,33 @@ public class peerConnection extends Thread {
         remotePeerId = Handshake.extractPeerId(handshake);
 
         System.out.println("Received handshake from peer " + remotePeerId);
+    }
+
+    void sendMessage(Message msg) throws Exception {
+        int length = 1 + msg.payload.length;
+        out.writeInt(length);
+        out.writeByte(msg.type);
+        if (msg.payload.length > 0){
+            out.write(msg.payload);
+        }
+        
+        out.flush();
+    }
+
+    void sendBitfieldIfNeeded() throws IOException {
+        // If this peer has no pieces (all zeros), you may skip sending bitfield
+        boolean hasAnyPiece = false;
+        for (byte b : peerProcess.bitfield) {
+            if (b != 0) {
+                hasAnyPiece = true;
+                break;
+            }
+        }
+        if (!hasAnyPiece) {
+            return; // skip bitfield if we have nothing
+        }
+        Message bitfieldMsg = new Message(Message.BITFIELD, peerProcess.bitfield);
+        sendMessage(bitfieldMsg);
     }
 
     void handleMessage(byte type, byte[] payload) {
