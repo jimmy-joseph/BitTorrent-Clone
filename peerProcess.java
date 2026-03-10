@@ -14,6 +14,9 @@ public class peerProcess {
     static int fileSize;
     static int pieceSize;
 
+    static int numPieces;
+    static byte[] bitfield;
+
     static ServerSocket serverSocket;
 
     public static void main(String[] args) throws Exception {
@@ -27,6 +30,7 @@ public class peerProcess {
 
         readCommonConfig();
         readPeerInfo();
+        initBitfield();
 
         Logger.init(peerId);
 
@@ -101,6 +105,23 @@ public class peerProcess {
         }
 
         br.close();
+    }
+
+    static void initBitfield() {
+
+        numPieces = (int) Math.ceil((double) fileSize / pieceSize);
+        int bitfieldLen = (numPieces + 7) / 8;
+        bitfield = new byte[bitfieldLen]; // defaults to all 0s
+
+        boolean hasFile = peers.get(peerId).hasFile;
+        if (hasFile) {
+            for (int i = 0; i < bitfieldLen; i++)
+                bitfield[i] = (byte) 0xFF;
+
+            int spareBits = bitfieldLen * 8 - numPieces;
+            if (spareBits > 0)
+                bitfield[bitfieldLen - 1] &= (byte) (0xFF << spareBits);
+        }
     }
 
     static void connectToPreviousPeers() throws Exception {
