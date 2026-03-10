@@ -14,11 +14,23 @@ public class peerConnection extends Thread {
         this.socket = socket;
         this.remotePeerId = remotePeerId;
 
+        System.out.println("test 1");
+
         in = new DataInputStream(socket.getInputStream());
+        System.out.println("test 2");
+
         out = new DataOutputStream(socket.getOutputStream());
 
+        System.out.println("test 3");
+
         sendHandshake();
+
+        System.out.println("test 4");
+
         receiveHandshake();
+
+        System.out.println("test 5");
+
     }
 
     public void run() {
@@ -53,9 +65,14 @@ public class peerConnection extends Thread {
 
     void receiveHandshake() throws Exception {
 
+        System.out.println("test 6");
+
         byte[] handshake = new byte[32];
 
         in.readFully(handshake);
+
+                System.out.println("test 7");
+
 
         int peerId = Handshake.extractPeerId(handshake);
 
