@@ -1,4 +1,7 @@
-@echo off
-start powershell.exe -NoExit -Command "cd .\BitTorrent-Clone\; java peerProcess 1001"
-start powershell.exe -NoExit -Command "cd .\BitTorrent-Clone\; java peerProcess 1002"
-start powershell.exe -NoExit -Command "cd .\BitTorrent-Clone\; java peerProcess 1003"
+#!/bin/bash
+
+for i in 1 2 3; do
+    powershell.exe -NoExit -Command "cd .\BitTorrent-Clone\; java peerProcess 100$i" &
+done
+
+wait
