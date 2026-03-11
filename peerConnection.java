@@ -36,18 +36,8 @@ public class peerConnection extends Thread {
     void listenForMessages() throws Exception {
 
         while (true) {
-
-            int length = in.readInt();
-            byte type = in.readByte();
-
-            byte[] payload = null;
-
-            if (length > 1) {
-                payload = new byte[length - 1];
-                in.readFully(payload);
-            }
-
-            handleMessage(type, payload);
+            Message msg = Message.receive(in);
+            handleMessage(msg);
         }
     }
 
@@ -74,8 +64,8 @@ public class peerConnection extends Thread {
 
         int length = 1 + (payload == null ? 0 : payload.length);
 
-        out.writeInt(length);
-        out.writeByte(type);
+        Message msg = new Message((byte)2, null);
+        msg.send(out);
 
         if (payload != null)
             out.write(payload);
@@ -83,41 +73,41 @@ public class peerConnection extends Thread {
         out.flush();
     }
 
-    void handleMessage(byte type, byte[] payload) {
+    void handleMessage(Message msg) {
 
-        switch (type) {
+    switch(msg.type) {
 
-            case 0:
-                Logger.log("Received CHOKE from " + remotePeerId);
-                break;
+        case 0:
+            Logger.log("Received CHOKE from " + remotePeerId);
+            break;
 
-            case 1:
-                Logger.log("Received UNCHOKE from " + remotePeerId);
-                break;
+        case 1:
+            Logger.log("Received UNCHOKE from " + remotePeerId);
+            break;
 
-            case 2:
-                Logger.log("Received INTERESTED from " + remotePeerId);
-                break;
+        case 2:
+            Logger.log("Received INTERESTED from " + remotePeerId);
+            break;
 
-            case 3:
-                Logger.log("Received NOT_INTERESTED from " + remotePeerId);
-                break;
+        case 3:
+            Logger.log("Received NOT_INTERESTED from " + remotePeerId);
+            break;
 
-            case 4:
-                Logger.log("Received HAVE from " + remotePeerId);
-                break;
+        case 4:
+            Logger.log("Received HAVE from " + remotePeerId);
+            break;
 
-            case 5:
-                Logger.log("Received BITFIELD from " + remotePeerId);
-                break;
+        case 5:
+            Logger.log("Received BITFIELD from " + remotePeerId);
+            break;
 
-            case 6:
-                Logger.log("Received REQUEST from " + remotePeerId);
-                break;
+        case 6:
+            Logger.log("Received REQUEST from " + remotePeerId);
+            break;
 
-            case 7:
-                Logger.log("Received PIECE from " + remotePeerId);
-                break;
-        }
+        case 7:
+            Logger.log("Received PIECE from " + remotePeerId);
+            break;
     }
+}
 }
