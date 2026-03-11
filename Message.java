@@ -1,5 +1,7 @@
 public class Message {
 
+    public static final byte INTERESTED = 2;
+    public static final byte NOT_INTERESTED = 3;
     public static final byte BITFIELD = 5;
 
     public final byte type;

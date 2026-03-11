@@ -5,14 +5,29 @@ public class peerConnection extends Thread {
 
     Socket socket;
     int remotePeerId;
+    boolean isOutgoing;
+    byte[] neighborBitfield;
 
     DataInputStream in;
     DataOutputStream out;
 
+    // outgoing connection — we initiated it, remotePeerId is known
     public peerConnection(Socket socket, int remotePeerId) throws Exception {
 
         this.socket = socket;
         this.remotePeerId = remotePeerId;
+        this.isOutgoing = true;
+
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());
+    }
+
+    // incoming connection — remotePeerId learned from handshake
+    public peerConnection(Socket socket) throws Exception {
+
+        this.socket = socket;
+        this.remotePeerId = -1;
+        this.isOutgoing = false;
 
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
@@ -22,8 +37,13 @@ public class peerConnection extends Thread {
 
         try {
 
-            sendHandshake();
-            receiveHandshake();
+            if (isOutgoing) {
+                sendHandshake();
+                receiveHandshake();
+            } else {
+                receiveHandshake();
+                sendHandshake();
+            }
 
             sendBitfieldIfNeeded();
 
@@ -62,6 +82,10 @@ public class peerConnection extends Thread {
         remotePeerId = Handshake.extractPeerId(handshake);
 
         System.out.println("Received handshake from peer " + remotePeerId);
+
+        // added
+        if (!isOutgoing)
+            Logger.log("Peer " + peerProcess.peerId + " is connected from Peer " + remotePeerId);
     }
 
     void sendMessage(Message msg) throws Exception {
@@ -91,12 +115,22 @@ public class peerConnection extends Thread {
         sendMessage(bitfieldMsg);
     }
 
-    void handleBitfield(Message msg, byte[] bitfield) throws Exception {
-        // Insert bitfield logic handling logic here
-        /*
-        Observe incoming bitfield and determine if there are pieces to request
-        */
-        return; // return neighbor bitfields?
+    void handleBitfield(byte[] bitfield) throws Exception {
+        neighborBitfield = bitfield;
+
+        boolean interested = false;
+        for (int i = 0; i < peerProcess.bitfield.length && i < neighborBitfield.length; i++) {
+            if ((neighborBitfield[i] & ~peerProcess.bitfield[i]) != 0) {
+                interested = true;
+                break;
+            }
+        }
+
+        if (interested) {
+            sendMessage(new Message(Message.INTERESTED));
+        } else {
+            sendMessage(new Message(Message.NOT_INTERESTED));
+        }
     }
 
     void handleMessage(byte type, byte[] payload) {
@@ -118,6 +152,15 @@ public class peerConnection extends Thread {
             case 3:
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
                 break;
+            /*
+            case 5:
+                try {
+                    handleBitfield(payload);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            */
         }
     }
 }
