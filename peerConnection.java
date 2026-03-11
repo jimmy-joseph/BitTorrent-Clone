@@ -99,7 +99,7 @@ public class peerConnection extends Thread {
         out.flush();
     }
 
-    void sendBitfieldIfNeeded() throws IOException {
+    void sendBitfieldIfNeeded() throws Exception {
         // If this peer has no pieces (all zeros), you may skip sending bitfield
         boolean hasAnyPiece = false;
         for (byte b : peerProcess.bitfield) {
@@ -153,6 +153,7 @@ public class peerConnection extends Thread {
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
                 break;
             /*
+            Not sure if logging other cases are necessary, spec pdf seems weird
             case 5:
                 try {
                     handleBitfield(payload);
