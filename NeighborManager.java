@@ -1,5 +1,7 @@
 import java.util.*;
 
+
+
 public class NeighborManager {
 
     Map<Integer, peerState> neighbors = new HashMap<>();
@@ -9,7 +11,7 @@ public class NeighborManager {
     Integer optimisticNeighbor = null;
 
     //needed for messaging
-    Map<Integer, peerConnection> connections = new HashMap<>();
+    // Map<Integer, peerConnection> connections = new HashMap<>();
 
 
     //UPDATECHOKING
@@ -24,14 +26,14 @@ public class NeighborManager {
             if (shouldBeUnchoked) {
 
                 if (peer.choked) {
-                    sendUnchoke(peer.peerId);
+                    //sendUnchoke(peer.peerId);
                     peer.choked = false;
                 }
 
             } else {
 
                 if (!peer.choked) {
-                    sendChoke(peer.peerId);
+                    //sendChoke(peer.peerId);
                     peer.choked = true;
                 }
 
@@ -52,15 +54,16 @@ public class NeighborManager {
         boolean interestedNow = !temp.isEmpty();
 
         if (interestedNow && !peer.interested) {
-            sendInterested(peer.peerId);
+            //sendInterested(peer.peerId);
             peer.interested = true;
         }
 
         if (!interestedNow && peer.interested) {
-            sendNotInterested(peer.peerId);
+            //sendNotInterested(peer.peerId);
             peer.interested = false;
         }
     }
+}
 /*
     private void sendChoke(int peerId) {
         try {
@@ -93,5 +96,6 @@ public class NeighborManager {
             e.printStackTrace();
         }
     }
-        */
+        
 }
+*/
