@@ -11,7 +11,7 @@ public class peerConnection extends Thread {
     DataInputStream in;
     DataOutputStream out;
 
-    // outgoing connection — we initiated it, remotePeerId is known
+    // outgoing connection
     public peerConnection(Socket socket, int remotePeerId) throws Exception {
 
         this.socket = socket;
@@ -22,7 +22,7 @@ public class peerConnection extends Thread {
         out = new DataOutputStream(socket.getOutputStream());
     }
 
-    // incoming connection — remotePeerId learned from handshake
+    // incoming connection
     public peerConnection(Socket socket) throws Exception {
 
         this.socket = socket;
@@ -83,7 +83,7 @@ public class peerConnection extends Thread {
 
         System.out.println("Received handshake from peer " + remotePeerId);
 
-        // added
+        // added for logging
         if (!isOutgoing)
             Logger.log("Peer " + peerProcess.peerId + " is connected from Peer " + remotePeerId);
     }
@@ -100,7 +100,7 @@ public class peerConnection extends Thread {
     }
 
     void sendBitfieldIfNeeded() throws Exception {
-        // If this peer has no pieces (all zeros), you may skip sending bitfield
+        // check if all 0s
         boolean hasAnyPiece = false;
         for (byte b : peerProcess.bitfield) {
             if (b != 0) {
@@ -109,7 +109,7 @@ public class peerConnection extends Thread {
             }
         }
         if (!hasAnyPiece) {
-            return; // skip bitfield if we have nothing
+            return; // skip sending bitfield message
         }
         Message bitfieldMsg = new Message(Message.BITFIELD, peerProcess.bitfield);
         sendMessage(bitfieldMsg);
