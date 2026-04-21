@@ -5,4 +5,5 @@
 !archive/proj1.tar
 build/
 logs/
+peer_*/
 .DS_Store
