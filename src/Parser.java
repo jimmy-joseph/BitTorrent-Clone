@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class Parser {
@@ -9,7 +10,7 @@ public class Parser {
         return config;
     }
     public static void main(String[] args) throws Exception {
-        Properties config = parseCommon("Common.cfg");
+        Properties config = parseCommon(Paths.get("config", "Common.cfg").toString());
 
         int numberPreferredNeighbors = Integer.parseInt(config.getProperty("NumberOfPreferredNeighbors"));
         int unchokingInterval = Integer.parseInt(config.getProperty("UnchokingInterval"));

@@ -1,8 +1,12 @@
 import java.io.*;
 import java.net.*;
+import java.nio.file.*;
 import java.util.*;
 
 public class peerProcess {
+
+    static final Path COMMON_CONFIG_PATH = Paths.get("config", "Common.cfg");
+    static final Path PEER_INFO_PATH = Paths.get("config", "PeerInfo.cfg");
 
     static int peerId;
     static Map<Integer, PeerInfo> peers = new LinkedHashMap<>();
@@ -47,7 +51,7 @@ public class peerProcess {
 
     static void readCommonConfig() throws Exception {
 
-        BufferedReader br = new BufferedReader(new FileReader("Common.cfg"));
+        BufferedReader br = Files.newBufferedReader(COMMON_CONFIG_PATH);
 
         String line;
 
@@ -88,7 +92,7 @@ public class peerProcess {
 
     static void readPeerInfo() throws Exception {
 
-        BufferedReader br = new BufferedReader(new FileReader("PeerInfo.cfg"));
+        BufferedReader br = Files.newBufferedReader(PEER_INFO_PATH);
 
         String line;
 

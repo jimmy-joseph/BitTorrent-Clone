@@ -16,7 +16,7 @@ A Java implementation of the BitTorrent peer-to-peer file sharing protocol.
 From the repository root:
 
 ```bash
-javac *.java
+javac -d build/classes src/*.java
 ```
 
 ### 2. Launch Peers
@@ -24,22 +24,22 @@ javac *.java
 **Windows** — opens each peer in a separate PowerShell window:
 
 ```bat
-.\startup.bat
+.\scripts\startup.bat
 ```
 
 **Linux / WSL:**
 
 ```bash
-bash startup.sh
+bash scripts/startup.sh
 ```
 
 Both scripts launch peers 1001, 1002, and 1003. To run a single peer manually:
 
 ```bash
-java peerProcess <peerId>
+java -cp build/classes peerProcess <peerId>
 ```
 
-Peers must be started in the order they appear in `PeerInfo.cfg`. Each peer connects to all peers listed before it and listens for connections from peers listed after it.
+Peers must be started in the order they appear in `config/PeerInfo.cfg`. Each peer connects to all peers listed before it and listens for connections from peers listed after it.
 
 ---
 
@@ -47,30 +47,38 @@ Peers must be started in the order they appear in `PeerInfo.cfg`. Each peer conn
 
 ```
 BitTorrent-Clone/
-├── peerProcess.java       # Main entry point — initializes a peer and manages connections
-├── peerConnection.java    # Handles a single TCP connection to/from another peer
-├── peerState.java         # Tracks per-peer state (choked, interested, bitfield, rate)
-├── Message.java           # Message type constants and serialization
-├── Handshake.java         # 32-byte handshake protocol
-├── Logger.java            # Timestamped logging to file and console
-├── Parser.java            # Parses Common.cfg into a Properties object
-├── NeighborManager.java   # Choking/unchoking algorithm (in progress)
-│
-├── Common.cfg             # Global protocol settings (piece size, intervals, etc.)
-├── PeerInfo.cfg           # List of all peers (ID, host, port, has-file flag)
-│
-├── startup.bat            # Windows launch script (peers 1001–1003)
-├── startup.sh             # Linux/WSL launch script (peers 1001–1003)
-│
-└── peers/
-    ├── 1001/thefile       # Shared file for peer 1001 (seed)
-    └── 1006/thefile       # Shared file for peer 1006 (seed)
+├── config/
+│   ├── Common.cfg         # Global protocol settings
+│   └── PeerInfo.cfg       # Peer IDs, hosts, ports, and seed flags
+├── scripts/
+│   ├── startup.bat        # Windows launcher
+│   └── startup.sh         # Linux / WSL launcher
+├── src/
+│   ├── peerProcess.java   # Main entry point
+│   ├── peerConnection.java
+│   ├── peerState.java
+│   ├── Message.java
+│   ├── Handshake.java
+│   ├── Logger.java
+│   ├── Parser.java
+│   └── NeighborManager.java
+├── sample-data/
+│   └── peers/
+│       ├── 1001/thefile   # Example seeded file
+│       └── 1006/thefile   # Example seeded file
+└── archive/
+    └── proj1.tar          # Legacy project submission bundle
 ```
+
+Generated output is intentionally kept out of the root:
+
+- `build/` contains compiled `.class` files
+- `logs/` contains runtime peer logs
 
 ## Protocol Overview
 
-1. Each peer reads `Common.cfg` and `PeerInfo.cfg` on startup.
-2. A peer connects (outgoing TCP) to every peer listed before it in `PeerInfo.cfg`.
+1. Each peer reads `config/Common.cfg` and `config/PeerInfo.cfg` on startup.
+2. A peer connects (outgoing TCP) to every peer listed before it in `config/PeerInfo.cfg`.
 3. A peer listens for incoming connections from peers listed after it.
 4. Both sides exchange a handshake.
 5. Peers with at least one piece send a `BITFIELD` message advertising what they have.
