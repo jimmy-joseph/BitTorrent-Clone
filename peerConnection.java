@@ -5,14 +5,29 @@ public class peerConnection extends Thread {
 
     Socket socket;
     int remotePeerId;
+    boolean isOutgoing;
+    byte[] neighborBitfield;
 
     DataInputStream in;
     DataOutputStream out;
 
+    // outgoing connection
     public peerConnection(Socket socket, int remotePeerId) throws Exception {
 
         this.socket = socket;
         this.remotePeerId = remotePeerId;
+        this.isOutgoing = true;
+
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());
+    }
+
+    // incoming connection
+    public peerConnection(Socket socket) throws Exception {
+
+        this.socket = socket;
+        this.remotePeerId = -1;
+        this.isOutgoing = false;
 
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
@@ -22,8 +37,13 @@ public class peerConnection extends Thread {
 
         try {
 
-            sendHandshake();
-            receiveHandshake();
+            if (isOutgoing) {
+                sendHandshake();
+                receiveHandshake();
+            } else {
+                receiveHandshake();
+                sendHandshake();
+            }
 
             sendBitfieldIfNeeded();
 
@@ -62,6 +82,10 @@ public class peerConnection extends Thread {
         remotePeerId = Handshake.extractPeerId(handshake);
 
         System.out.println("Received handshake from peer " + remotePeerId);
+
+        // added for logging
+        if (!isOutgoing)
+            Logger.log("Peer " + peerProcess.peerId + " is connected from Peer " + remotePeerId);
     }
 
     void sendMessage(Message msg) throws Exception {
@@ -75,8 +99,8 @@ public class peerConnection extends Thread {
         out.flush();
     }
 
-    void sendBitfieldIfNeeded() throws IOException {
-        // If this peer has no pieces (all zeros), you may skip sending bitfield
+    void sendBitfieldIfNeeded() throws Exception {
+        // check if all 0s
         boolean hasAnyPiece = false;
         for (byte b : peerProcess.bitfield) {
             if (b != 0) {
@@ -85,10 +109,28 @@ public class peerConnection extends Thread {
             }
         }
         if (!hasAnyPiece) {
-            return; // skip bitfield if we have nothing
+            return; // skip sending bitfield message
         }
         Message bitfieldMsg = new Message(Message.BITFIELD, peerProcess.bitfield);
         sendMessage(bitfieldMsg);
+    }
+
+    void handleBitfield(byte[] bitfield) throws Exception {
+        neighborBitfield = bitfield;
+
+        boolean interested = false;
+        for (int i = 0; i < peerProcess.bitfield.length && i < neighborBitfield.length; i++) {
+            if ((neighborBitfield[i] & ~peerProcess.bitfield[i]) != 0) {
+                interested = true;
+                break;
+            }
+        }
+
+        if (interested) {
+            sendMessage(new Message(Message.INTERESTED));
+        } else {
+            sendMessage(new Message(Message.NOT_INTERESTED));
+        }
     }
 
     void handleBitfield(Message msg, byte[] bitfield) throws Exception {
@@ -118,6 +160,16 @@ public class peerConnection extends Thread {
             case 3:
                 Logger.log("Received NOT_INTERESTED from " + remotePeerId);
                 break;
+            /*
+            Not sure if logging other cases are necessary, spec pdf seems weird
+            case 5:
+                try {
+                    handleBitfield(payload);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            */
         }
     }
 }

@@ -23,5 +23,6 @@ public class Parser {
         System.out.println(optimisticUnchokingInterval);
         System.out.println(fileName);
         System.out.println(fileSize);
+        System.out.println(pieceSize);
     }
 }

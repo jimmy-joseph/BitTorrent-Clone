@@ -162,17 +162,7 @@ public class peerProcess {
 
             Socket socket = serverSocket.accept();
 
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-
-            byte[] handshake = new byte[32];
-
-            in.readFully(handshake);
-
-            int remotePeerId = Handshake.extractPeerId(handshake);
-
-            Logger.log("Peer " + peerId + " is connected from Peer " + remotePeerId);
-
-            peerConnection connection = new peerConnection(socket, remotePeerId);
+            peerConnection connection = new peerConnection(socket);
 
             connection.start();
         }
