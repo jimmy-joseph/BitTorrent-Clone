@@ -24,7 +24,7 @@ echo "Compiling..."
 javac -d "${BUILD_DIR}" "${REPO_ROOT}"/src/*.java
 
 if [ "$#" -eq 0 ]; then
-    PEERS=(1001 1002 1003)
+    PEERS=(1001 1002 1003 1004 1005 1006)
 else
     PEERS=("$@")
 fi

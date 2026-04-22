@@ -7,3 +7,4 @@ build/
 logs/
 peer_*/
 .DS_Store
+sample-data/peers/*/tree.jpg

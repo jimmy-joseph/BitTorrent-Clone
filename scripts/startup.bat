@@ -11,3 +11,6 @@ popd
 start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1001"
 start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1002"
 start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1003"
+start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1004"
+start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1005"
+start powershell.exe -NoExit -Command "Set-Location '%REPO_ROOT%'; java -cp '%BUILD_DIR%' peerProcess 1006"
