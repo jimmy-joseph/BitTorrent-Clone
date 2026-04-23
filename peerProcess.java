@@ -6,8 +6,14 @@ import java.util.concurrent.*;
 
 public class peerProcess {
 
-    static final Path COMMON_CONFIG_PATH = Paths.get("config", "Common.cfg");
-    static final Path PEER_INFO_PATH = Paths.get("config", "PeerInfo.cfg");
+    private static Path resolveConfigPath(String name) {
+        Path inConfig = Paths.get("config", name);
+        if (Files.exists(inConfig)) return inConfig;
+        Path inCwd = Paths.get(name);
+        if (Files.exists(inCwd)) return inCwd;
+        throw new RuntimeException(
+            "Cannot find " + name + " in either config/ or current directory");
+    }
 
     static int peerId;
     static Map<Integer, PeerInfo> peers = new LinkedHashMap<>();
@@ -70,7 +76,7 @@ public class peerProcess {
     }
 
     static void readCommonConfig() throws Exception {
-        BufferedReader br = Files.newBufferedReader(COMMON_CONFIG_PATH);
+        BufferedReader br = Files.newBufferedReader(resolveConfigPath("Common.cfg"));
         String line;
         while ((line = br.readLine()) != null) {
             String[] parts = line.trim().split("\\s+");
@@ -88,7 +94,7 @@ public class peerProcess {
     }
 
     static void readPeerInfo() throws Exception {
-        BufferedReader br = Files.newBufferedReader(PEER_INFO_PATH);
+        BufferedReader br = Files.newBufferedReader(resolveConfigPath("PeerInfo.cfg"));
         String line;
         while ((line = br.readLine()) != null) {
             String trimmed = line.trim();

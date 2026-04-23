@@ -7,4 +7,5 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
+javac ./*.java
 java peerProcess "$1"
