@@ -1,77 +1,25 @@
-# BitTorrent Clone — CNT4007
+CNT4007 Project - BitTorrent Clone
 
-A Java implementation of the BitTorrent peer-to-peer file sharing protocol.
+Group 76 Members:
+Jimmy Joseph, Shelton Joseph, Fabian Ho Chang
 
----
+To launch the respective peer id's run the command: 
 
-## Requirements
+(Linux)
+./scripts/run.sh <peerId>
+Ex: ./scripts/run.sh 1001
+Repeat for all peerId's
 
-- Java JDK 8 or higher
----
+(Windows)
+./scripts/run.bat <peerId>
+Ex: ./scripts/run.bat 1001
+Repeat for all peerId's
 
-## Startup
+To compile manually and run run:
+javac -d build/classes src/*.java
+java -cp build/classes peerProcess <peerId>
 
-### 1. Compile
+This is our implementation of the CNT Project, we used classes to represent individual peers.
+Our project can be used to upload any file, you just have to change the config file Common.cfg and PeerInfo.cfg files which have the file data and peer data respectively.
 
-From the repository root:
-
-```bash
-javac *.java
-```
-
-### 2. Launch Peers
-
-**Windows** — opens each peer in a separate PowerShell window:
-
-```bat
-.\startup.bat
-```
-
-**Linux / WSL:**
-
-```bash
-bash startup.sh
-```
-
-Both scripts launch peers 1001, 1002, and 1003. To run a single peer manually:
-
-```bash
-java peerProcess <peerId>
-```
-
-Peers must be started in the order they appear in `PeerInfo.cfg`. Each peer connects to all peers listed before it and listens for connections from peers listed after it.
-
----
-
-## File Structure
-
-```
-BitTorrent-Clone/
-├── peerProcess.java       # Main entry point — initializes a peer and manages connections
-├── peerConnection.java    # Handles a single TCP connection to/from another peer
-├── peerState.java         # Tracks per-peer state (choked, interested, bitfield, rate)
-├── Message.java           # Message type constants and serialization
-├── Handshake.java         # 32-byte handshake protocol
-├── Logger.java            # Timestamped logging to file and console
-├── Parser.java            # Parses Common.cfg into a Properties object
-├── NeighborManager.java   # Choking/unchoking algorithm (in progress)
-│
-├── Common.cfg             # Global protocol settings (piece size, intervals, etc.)
-├── PeerInfo.cfg           # List of all peers (ID, host, port, has-file flag)
-│
-├── startup.bat            # Windows launch script (peers 1001–1003)
-├── startup.sh             # Linux/WSL launch script (peers 1001–1003)
-│
-└── peers/
-    ├── 1001/thefile       # Shared file for peer 1001 (seed)
-    └── 1006/thefile       # Shared file for peer 1006 (seed)
-```
-
-## Protocol Overview
-
-1. Each peer reads `Common.cfg` and `PeerInfo.cfg` on startup.
-2. A peer connects (outgoing TCP) to every peer listed before it in `PeerInfo.cfg`.
-3. A peer listens for incoming connections from peers listed after it.
-4. Both sides exchange a handshake.
-5. Peers with at least one piece send a `BITFIELD` message advertising what they have.
-6. Peers reply with `INTERESTED` or `NOT_INTERESTED`.
+Fun fact: We sent our demo video to each group member using our own bittorrent protocol!

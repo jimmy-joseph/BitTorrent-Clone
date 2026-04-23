@@ -2,3 +2,9 @@
 *.log
 *.pdf
 *.tar
+!archive/proj1.tar
+build/
+logs/
+peer_*/
+.DS_Store
+sample-data/peers/*/tree.jpg
