@@ -6,18 +6,18 @@ Jimmy Joseph, Shelton Joseph, Fabian Ho Chang
 To launch the respective peer id's run the command: 
 
 (Linux)
-./run.sh <peerId>
-Ex: ./run.sh 1001
+./scripts/run.sh <peerId>
+Ex: ./scripts/run.sh 1001
 Repeat for all peerId's
 
 (Windows)
-./run.bat <peerId>
-Ex: ./run.bat 1001
+./scripts/run.bat <peerId>
+Ex: ./scripts/run.bat 1001
 Repeat for all peerId's
 
 To compile manually and run run:
-javac . /*.java
-java peerProcess <peerId>
+javac -d build/classes src/*.java
+java -cp build/classes peerProcess <peerId>
 
 This is our implementation of the CNT Project, we used classes to represent individual peers.
 Our project can be used to upload any file, you just have to change the config file Common.cfg and PeerInfo.cfg files which have the file data and peer data respectively.
