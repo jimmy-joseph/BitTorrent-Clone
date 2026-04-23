@@ -61,7 +61,6 @@ public class peerConnection extends Thread {
             }
 
         } catch (EOFException e) {
-            // remote peer closed the connection — normal when they finish
         } catch (IOException e) {
             if (running) {
                 System.out.println("Connection to peer " + remotePeerId + " lost: " + e.getMessage());
@@ -231,7 +230,9 @@ public class peerConnection extends Thread {
 
     void handleRequest(int pieceIndex) throws IOException {
         peerState peer = peerProcess.neighborManager.neighbors.get(remotePeerId);
-        if (peer.choked) return; // we're choking them, ignore
+        if (peer.choked) {
+            return; // ignore
+        }
         if (!peerProcess.fileManager.hasPiece(pieceIndex)) return;
         sendPieceMsg(pieceIndex);
     }
@@ -259,9 +260,9 @@ public class peerConnection extends Thread {
         if (candidates.isEmpty()) return;
 
         Collections.shuffle(candidates);
-        for (int idx : candidates) {
-            if (peerProcess.requestedPieces.add(idx)) {
-                sendRequest(idx);
+        for (int candidate : candidates) {
+            if (peerProcess.requestedPieces.add(candidate)) {
+                sendRequest(candidate);
                 return;
             }
         }

@@ -9,10 +9,9 @@ public class peerProcess {
     private static Path resolveConfigPath(String name) {
         Path inConfig = Paths.get("config", name);
         if (Files.exists(inConfig)) return inConfig;
-        Path inCwd = Paths.get(name);
-        if (Files.exists(inCwd)) return inCwd;
-        throw new RuntimeException(
-            "Cannot find " + name + " in either config/ or current directory");
+        Path inCurrent = Paths.get(name);
+        if (Files.exists(inCurrent)) return inCurrent;
+        throw new RuntimeException(name + " not found");
     }
 
     static int peerId;
@@ -65,13 +64,17 @@ public class peerProcess {
 
         startSchedulers();
 
-        Thread listenerThread = new Thread(peerProcess::listenLoop, "listener");
+        Thread listenerThread = new Thread(() -> listenLoop(), "listener");
         listenerThread.setDaemon(true);
         listenerThread.start();
 
-        // Keep main alive until termination
+        // keep alive until terminated
         while (!terminated) {
-            try { Thread.sleep(500); } catch (InterruptedException e) { break; }
+            try { 
+                Thread.sleep(500);
+            } catch (InterruptedException e) { 
+                break;
+            }
         }
     }
 
@@ -117,15 +120,21 @@ public class peerProcess {
 
         boolean hasFile = peers.get(peerId).hasFile;
         if (hasFile) {
-            for (int i = 0; i < bitfieldLen; i++) bitfield[i] = (byte) 0xFF;
+            for (int i = 0; i < bitfieldLen; i++) {
+                bitfield[i] = (byte) 0xFF;
+            }
             int spareBits = bitfieldLen * 8 - numPieces;
-            if (spareBits > 0) bitfield[bitfieldLen - 1] &= (byte) (0xFF << spareBits);
+            if (spareBits > 0) {
+                bitfield[bitfieldLen - 1] &= (byte) (0xFF << spareBits);
+            }
         }
     }
 
     static void connectToPreviousPeers() throws Exception {
         for (PeerInfo p : peers.values()) {
-            if (p.id == peerId) break;
+            if (p.id == peerId) {
+                break;
+            }
 
             try {
                 Socket socket = new Socket(p.host, p.port);
@@ -155,17 +164,24 @@ public class peerProcess {
         scheduler = Executors.newScheduledThreadPool(3);
 
         scheduler.scheduleAtFixedRate(() -> {
-            try { neighborManager.selectPreferredNeighbors(); }
-            catch (Throwable t) { t.printStackTrace(); }
+            try { 
+                neighborManager.selectPreferredNeighbors(); 
+            }
+            catch (Throwable t) { 
+                t.printStackTrace(); 
+            }
         }, unchokingInterval, unchokingInterval, TimeUnit.SECONDS);
 
         scheduler.scheduleAtFixedRate(() -> {
-            try { neighborManager.selectOptimisticUnchoke(); }
-            catch (Throwable t) { t.printStackTrace(); }
+            try { 
+                neighborManager.selectOptimisticUnchoke(); 
+            }
+            catch (Throwable t) { 
+                t.printStackTrace(); 
+            }
         }, optimisticUnchokingInterval, optimisticUnchokingInterval, TimeUnit.SECONDS);
 
-        scheduler.scheduleAtFixedRate(peerProcess::checkTermination,
-                2, 2, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> checkTermination(), 2, 2, TimeUnit.SECONDS);
     }
 
     public static synchronized void onPieceReceived(int pieceIdx, byte[] data, int fromPeerId, peerConnection conn) {
@@ -173,9 +189,11 @@ public class peerProcess {
         requestedPieces.remove(pieceIdx);
 
         if (!accepted) {
-            // duplicate; still try to request next
+            // already had
             try {
-                if (!fileManager.isComplete()) conn.requestNextPiece();
+                if (!fileManager.isComplete()) {
+                    conn.requestNextPiece();
+                }
             } catch (IOException ignored) {}
             return;
         }
@@ -191,20 +209,25 @@ public class peerProcess {
 
         int numHave = fileManager.numPiecesHeld();
 
-        Logger.log("Peer " + peerId + " has downloaded the piece " + pieceIdx
-                + " from " + fromPeerId + ". Now the number of pieces it has is " + numHave);
+        Logger.log("Peer " + peerId + " has downloaded the piece " + pieceIdx + " from " + fromPeerId + ". Now the number of pieces it has is " + numHave);
 
         neighborManager.broadcastHave(pieceIdx);
         neighborManager.reevaluateAllInterest();
 
         if (fileManager.isComplete()) {
             Logger.log("Peer " + peerId + " has downloaded the complete file.");
-            try { fileManager.writeFullFileIfNeeded(); }
-            catch (IOException e) { e.printStackTrace(); }
+            try { 
+                fileManager.writeFullFileIfNeeded(); 
+            }
+            catch (IOException e) { 
+                e.printStackTrace(); 
+            }
         }
 
         if (fromPeer != null && !fromPeer.chokingMe && !fileManager.isComplete()) {
-            try { conn.requestNextPiece(); } catch (IOException ignored) {}
+            try { 
+                conn.requestNextPiece(); 
+            } catch (IOException ignored) {}
         }
 
         checkTermination();
@@ -233,7 +256,6 @@ public class peerProcess {
         Logger.log("All peers have the complete file. Shutting down.");
         try { if (scheduler != null) scheduler.shutdownNow(); } catch (Exception ignored) {}
         try { if (serverSocket != null) serverSocket.close(); } catch (Exception ignored) {}
-        // give log flush a moment
         try { Thread.sleep(200); } catch (InterruptedException ignored) {}
         System.exit(0);
     }

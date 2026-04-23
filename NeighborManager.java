@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class NeighborManager {
 
@@ -25,7 +24,6 @@ public class NeighborManager {
             try {
                 e.getValue().sendHave(pieceIdx);
             } catch (IOException ex) {
-                // ignore broken connection
             }
         }
     }
@@ -37,7 +35,6 @@ public class NeighborManager {
             try {
                 c.updateInterestIn(p);
             } catch (IOException ex) {
-                // ignore
             }
         }
     }
@@ -54,7 +51,7 @@ public class NeighborManager {
             if (peerProcess.fileManager.isComplete()) {
                 Collections.shuffle(interested, random);
             } else {
-                Collections.shuffle(interested, random); // random tiebreak baseline
+                Collections.shuffle(interested, random);
                 interested.sort((a, b) -> Integer.compare(b.bytesDownloadedThisInterval, a.bytesDownloadedThisInterval));
             }
             int k = Math.min(peerProcess.numPreferredNeighbors, interested.size());
@@ -81,8 +78,12 @@ public class NeighborManager {
         }
         List<Integer> sorted = new ArrayList<>(preferredNeighbors);
         Collections.sort(sorted);
-        String list = sorted.stream().map(String::valueOf).collect(Collectors.joining(","));
-        Logger.log("Peer " + peerProcess.peerId + " has the preferred neighbors " + list);
+        StringBuilder list = new StringBuilder();
+        for (int i = 0; i < sorted.size(); i++) {
+            if (i > 0) list.append(",");
+            list.append(sorted.get(i));
+        }
+        Logger.log("Peer " + peerProcess.peerId + " has the preferred neighbors " + list.toString());
     }
 
     public synchronized void selectOptimisticUnchoke() {
@@ -117,10 +118,10 @@ public class NeighborManager {
             if (conn == null) continue;
 
             if (shouldUnchoke && peer.choked) {
-                try { conn.sendUnchoke(); } catch (IOException e) { /* ignore */ }
+                try { conn.sendUnchoke(); } catch (IOException e) {}
                 peer.choked = false;
             } else if (!shouldUnchoke && !peer.choked) {
-                try { conn.sendChoke(); } catch (IOException e) { /* ignore */ }
+                try { conn.sendChoke(); } catch (IOException e) {}
                 peer.choked = true;
             }
         }

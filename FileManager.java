@@ -9,7 +9,7 @@ public class FileManager {
     final int fileSize;
     final int pieceSize;
     final int numPieces;
-    final byte[][] pieces;
+    final byte[][] pieceList;
     final Path peerDir;
     final AtomicInteger numHeld = new AtomicInteger(0);
     volatile boolean fullFileWritten = false;
@@ -20,7 +20,7 @@ public class FileManager {
         this.fileSize = fileSize;
         this.pieceSize = pieceSize;
         this.numPieces = numPieces;
-        this.pieces = new byte[numPieces][];
+        this.pieceList = new byte[numPieces][];
         this.peerDir = Paths.get("peer_" + peerId);
         Files.createDirectories(peerDir);
 
@@ -46,25 +46,25 @@ public class FileManager {
             int end = Math.min(start + pieceSize, fileSize);
             byte[] piece = new byte[end - start];
             System.arraycopy(all, start, piece, 0, piece.length);
-            pieces[i] = piece;
+            pieceList[i] = piece;
         }
         numHeld.set(numPieces);
         fullFileWritten = true;
     }
 
     public byte[] getPiece(int index) {
-        return pieces[index];
+        return pieceList[index];
     }
 
     public synchronized boolean setPiece(int index, byte[] data) {
-        if (pieces[index] != null) return false;
-        pieces[index] = data;
+        if (pieceList[index] != null) return false;
+        pieceList[index] = data;
         numHeld.incrementAndGet();
         return true;
     }
 
     public boolean hasPiece(int index) {
-        return pieces[index] != null;
+        return pieceList[index] != null;
     }
 
     public int numPiecesHeld() {
@@ -80,7 +80,7 @@ public class FileManager {
         Path out = peerDir.resolve(fileName);
         try (FileOutputStream fos = new FileOutputStream(out.toFile())) {
             for (int i = 0; i < numPieces; i++) {
-                fos.write(pieces[i]);
+                fos.write(pieceList[i]);
             }
         }
         fullFileWritten = true;
